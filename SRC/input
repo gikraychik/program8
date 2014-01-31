@@ -33,8 +33,6 @@ define timerMSec as TIMER_MSEC;
 define voltage as PWM_PERCENT;
 define compar as I5;
 init global standTimer;
-init global maxDes;
-init global minDes;
 init global adminTimer;
 init global oldt1;
 init global oldt2;
@@ -51,7 +49,6 @@ adminTimer = 750;
 timer = 30000;
 compar_timer = 20000;
 refresh_timer = 20000;
-maxDes = 30; minDes = 10;
 oldVol = 10;
 init x = t3 + voltage + checkSum == 243;
 x = x ? 4 : 2;
@@ -221,8 +218,8 @@ if (v2 && x) { v = 3; }
 if (v0 && x) { v = 4; }
 y = v3 && x;
 init curDes = des;
-if ((y && u) && (curDes < maxDes)) { curDes = curDes + 1; }
-if ((y && d) && (curDes > minDes)) { curDes = curDes - 1; }
+if ((y && u) && (curDes < 30)) { curDes = curDes + 1; }
+if ((y && d) && (curDes > 10)) { curDes = curDes - 1; }
 if (!x && v3) { v = 2; }
 des = curDes;
 delete curDes;
