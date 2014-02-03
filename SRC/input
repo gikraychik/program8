@@ -33,7 +33,6 @@ define timerMSec as TIMER_MSEC;
 define voltage as PWM_PERCENT;
 define compar as I5;
 init global standTimer;
-init global adminTimer;
 init global oldt1;
 init global oldt2;
 init global timer;
@@ -45,7 +44,6 @@ label 0;
 s1 = 0; ind2 = 1; ind3 = 0;
 timerMSec = 62500;
 standTimer = 750;
-adminTimer = 750;
 timer = 30000;
 compar_timer = 20000;
 refresh_timer = 20000;
@@ -236,10 +234,6 @@ erase des;
 delete x; delete y; delete u; delete d;
 delete v0; delete v1; delete v2; delete v3; delete v4;
 video = v; delete v;
-init wasIn = 0;
-init ready = adminTimer == 0;
-if (ready) { adminTimer = 750; }
-delete wasIn;
 init next = 8;
 if (standTimer == 0)
 {
@@ -270,9 +264,11 @@ if (!upStatus || !downStatus) { standTimer = 750; }
 if (delta > standTimer) { standTimer = 0; }
 if (delta <= standTimer) { standTimer = standTimer - delta; }
 
-if (!(video == 1) || !enter) { adminTimer = 750; }
-if (delta > adminTimer) { adminTimer = 0; }
-if (delta <= adminTimer) { adminTimer = adminTimer - delta; }
+if (delta > refresh_timer) { refresh_timer = 0; }
+if (delta <= refresh_timer) { refresh_timer = refresh_timer - delta; }
+
+if (delta > compar_timer) { compar_timer = 0; }
+if (delta <= compar_timer) { compar_timer = compar_timer - delta; }
 
 if (delta > timer) { timer = 0; }
 if (delta <= timer) { timer = timer - delta; }
