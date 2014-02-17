@@ -32,13 +32,13 @@ define timerSec as TIMER_SEC;
 define timerMSec as TIMER_MSEC;
 define voltage as PWM_PERCENT;
 define compar as I5;
-init global standTimer;
+init global compar_timer;
 init global oldt1;
+init global refresh_timer;
+init global oldVol;
 init global oldt2;
 init global timer;
-init global oldVol;
-init global compar_timer;
-init global refresh_timer;
+init global standTimer;
 
 label 0;
 s1 = 0; ind2 = 1; ind3 = 0;
@@ -154,31 +154,34 @@ delete out;
 if (!rele2) { compar_timer = 20000; refresh_timer = 20000; timer = 3750; }
 init refresh_wait = (refresh_timer > 0) && (refresh_timer <= 1250);
 init compar_wait = (compar_timer > 0) && (compar_timer <= 7500);
-if (refresh_wait) { rele2 = 0; }
+if (refresh_timer <= 1250) { rele2 = 0; }
+
+init rele2_is_on = rele2;
 if (!(refresh_wait || compar_wait))
 {
-	delete compar_wait;
-	delete refresh_wait;
-	if (rele2)
+	if (rele2_is_on)
 	{
 		if (timer == 0)
 		{
-			if (compar_timer > 7500) { compar_timer = 7500; refresh_timer = 20000; }
 			if (compar_timer <= 7500)
 			{
 				if (compar) { compar_timer = 20000; refresh_timer = 20000; }
 				if (!compar) { rele2 = 0; refresh_timer = 1250; }
 			}
+			if (compar_timer > 7500) { compar_timer = 7500; refresh_timer = 20000; }
 		}
-		if (timer > 0) { rele2 = 0; compar_timer = 0; refresh_timer = 0; }
+		if (timer > 0) { rele2 = 0; }
 	}
-	if (!rele2)
+	if (!rele2_is_on)
 	{
-		if (refresh_timer == 0) { rele2 = 1; compar_timer = 7500; refresh_timer = 20000; timer = 0; }
-		if (!(refresh_timer == 0)) { compar_timer = 20000; refresh_timer = 20000; timer = 3750; }
+		if (refresh_timer == 0) { rele2 = 1; compar_timer = 7500; timer = 0; }
+		if (!(refresh_timer == 0)) { compar_timer = 20000; timer = 3750; }
+		refresh_timer = 20000;
 	}
 }
-
+delete rele2_is_on;
+delete refresh_wait;
+delete compar_wait;
 ind4 = rele2 ? 1 : 0;
 
 s2 = rele2; s3 = 0; s4 = 0;
