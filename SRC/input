@@ -188,9 +188,9 @@ delete cond4;
 delete out;
 
 init temp1 = rele2 && rele3;
-ind4 = temp1 ? 1 : 0;
-temp1 = rele2 && (!rele3);
 ind5 = temp1 ? 1 : 0;
+temp1 = rele2 && (!rele3);
+ind4 = temp1 ? 1 : 0;
 ind1 = rele4 ? 1 : 0;
 delete temp1;
 
