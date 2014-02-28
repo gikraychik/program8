@@ -32,21 +32,23 @@ define timerSec as TIMER_SEC;
 define timerMSec as TIMER_MSEC;
 define voltage as PWM_PERCENT;
 define compar as I5;
-init global compar_timer;
+init global maxDes;
 init global oldt1;
-init global refresh_timer;
-init global oldVol;
+init global adminTimer;
 init global oldt2;
-init global timer;
 init global standTimer;
+init global minDes;
+
+init global timer;
+init global oldVol;
 
 label 0;
 s1 = 0; ind2 = 1; ind3 = 0;
 timerMSec = 62500;
 standTimer = 750;
+adminTimer = 750;
 timer = 30000;
-compar_timer = 20000;
-refresh_timer = 20000;
+maxDes = 26; minDes = 20;
 oldVol = 10;
 init x = t3 + voltage + checkSum == 243;
 x = x ? 4 : 2;
@@ -79,9 +81,6 @@ s1 = 0; s2 = 0; s3 = 0; s4 = 0;
 ind1 = 0; ind3 = 0; ind4 = 0; ind5 = 0;
 led0 = 0; led1 = 0; led2 = 0; led3 = 0;
 video = 0; voltage = 0;
-compar_timer = 20000;
-refresh_timer = 20000;
-timer = 30000;
 define y as TMP24;
 y = 4;
 erase y;
@@ -139,53 +138,47 @@ if ((t2Last > 60) || (inside < 0-40) || (inside > 50)) { inside = 24; }
 
 init desired = t3;
 init rele2 = s2;
+init rele3 = s3;
+init rele4 = s4;
 
 init out = outside >= 5;
 
+init tmp1 = inside < desired;
+init cond = tmp1 && out;
+if (cond && (rele3 == 0)) { rele2 = 1; rele3 = 1; }
+if (!cond && (rele3 == 1)) { rele2 = 0; rele3 = 0; }
+delete cond;
+
+init tmp2 = !out && tmp1;
+if (tmp2) { rele4 = 1; }
+if (!tmp2) { rele4 = 0; }
+delete tmp2;
+delete tmp1;
+
 init tmp1 = inside > desired;
 init cond = tmp1 && out;
-if (cond) { rele2 = 1; }
-if (!cond) { rele2 = 0; }
+if (cond && (rele2 == 0)) { rele2 = 1; }
+if (!cond && (rele2 == 1) && (rele3 == 0)) { rele2 = 0; }
 delete cond;
 delete tmp1;
 
 delete out;
 
-if (!rele2) { compar_timer = 20000; refresh_timer = 20000; timer = 30000; }
-init refresh_wait = (refresh_timer > 0) && (refresh_timer <= 1250);
-init compar_wait = (compar_timer > 0) && (compar_timer <= 7500);
-if (refresh_timer <= 1250) { rele2 = 0; }
+if (rele2 == 0) { timer = 30000; }
+init tmp = (timer > 0) && (rele2 == 1);
+if (tmp) { rele2 = 0; }
+if (tmp && (rele3 == 1)) { rele3 = 0; }
+delete tmp;
 
-init rele2_is_on = rele2;
-if (!(refresh_wait || compar_wait))
-{
-	if (rele2_is_on)
-	{
-		if (timer == 0)
-		{
-			if (compar_timer <= 7500)
-			{
-				if (compar) { compar_timer = 20000; refresh_timer = 20000; }
-				if (!compar) { rele2 = 0; refresh_timer = 1250; }
-			}
-			if (compar_timer > 7500) { compar_timer = 7500; refresh_timer = 20000; }
-		}
-		if (timer > 0) { rele2 = 0; }
-	}
-	if (!rele2_is_on)
-	{
-		if (refresh_timer == 0) { rele2 = 1; compar_timer = 7500; timer = 0; }
-		if (!(refresh_timer == 0)) { compar_timer = 20000; timer = 30000; }
-		refresh_timer = 20000;
-	}
-}
-delete rele2_is_on;
-delete refresh_wait;
-delete compar_wait;
-ind4 = rele2 ? 1 : 0;
+ind5 = rele3 ? 1 : 0;
+ind1 = rele4 ? 1 : 0;
+init left = (!rele3) && (rele2);
+if (left) { ind4 = 1; }
+if (!left) { ind4 = 0; }
+delete left;
 
-s2 = rele2; s3 = 0; s4 = 0;
-delete rele2;
+s2 = rele2; s3 = rele3; s4 = rele4;
+delete rele2; delete rele3; delete rele4;
 delete inside;
 delete desired;
 
@@ -219,8 +212,8 @@ if (v2 && x) { v = 3; }
 if (v0 && x) { v = 4; }
 y = v3 && x;
 init curDes = des;
-if ((y && u) && (curDes < 30)) { curDes = curDes + 1; }
-if ((y && d) && (curDes > 10)) { curDes = curDes - 1; }
+if ((y && u) && (curDes < maxDes)) { curDes = curDes + 1; }
+if ((y && d) && (curDes > minDes)) { curDes = curDes - 1; }
 if (!x && v3) { v = 2; }
 des = curDes;
 delete curDes;
@@ -237,11 +230,17 @@ erase des;
 delete x; delete y; delete u; delete d;
 delete v0; delete v1; delete v2; delete v3; delete v4;
 video = v; delete v;
+init wasIn = 0;
+init ready = adminTimer == 0;
+if (ready && (minDes == 20)) { wasIn = 1; minDes = 10; maxDes = 30; }
+if (ready && (minDes == 10) && !wasIn) { minDes = 20; maxDes = 26; }
+if (ready) { adminTimer = 750; }
+delete wasIn;
 init next = 8;
 if (standTimer == 0)
 {
-        standTimer = 750;
-        next = 4;
+	standTimer = 750;
+	next = 4;
 }
 goto next;
 delete next;
@@ -267,11 +266,9 @@ if (!upStatus || !downStatus) { standTimer = 750; }
 if (delta > standTimer) { standTimer = 0; }
 if (delta <= standTimer) { standTimer = standTimer - delta; }
 
-if (delta > refresh_timer) { refresh_timer = 0; }
-if (delta <= refresh_timer) { refresh_timer = refresh_timer - delta; }
-
-if (delta > compar_timer) { compar_timer = 0; }
-if (delta <= compar_timer) { compar_timer = compar_timer - delta; }
+if (!(video == 1) || !enter) { adminTimer = 750; }
+if (delta > adminTimer) { adminTimer = 0; }
+if (delta <= adminTimer) { adminTimer = adminTimer - delta; }
 
 if (delta > timer) { timer = 0; }
 if (delta <= timer) { timer = timer - delta; }
