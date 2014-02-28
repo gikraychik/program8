@@ -44,7 +44,7 @@ label 0;
 s1 = 0; ind2 = 1; ind3 = 0;
 timerMSec = 62500;
 standTimer = 750;
-timer = 3750;
+timer = 30000;
 compar_timer = 20000;
 refresh_timer = 20000;
 oldVol = 10;
@@ -81,12 +81,12 @@ led0 = 0; led1 = 0; led2 = 0; led3 = 0;
 video = 0; voltage = 0;
 compar_timer = 20000;
 refresh_timer = 20000;
-timer = 3750;
+timer = 30000;
 define y as TMP24;
 y = 4;
 erase y;
 init x = standTimer == 0;
-timer = 3750;
+timer = 30000;
 x = x ? 5 : 9;
 if (standTimer == 0) { standTimer = 750; }
 if (x == 5) { s1 = 1; ind3 = 1; }
@@ -151,7 +151,7 @@ delete tmp1;
 
 delete out;
 
-if (!rele2) { compar_timer = 20000; refresh_timer = 20000; timer = 3750; }
+if (!rele2) { compar_timer = 20000; refresh_timer = 20000; timer = 30000; }
 init refresh_wait = (refresh_timer > 0) && (refresh_timer <= 1250);
 init compar_wait = (compar_timer > 0) && (compar_timer <= 7500);
 if (refresh_timer <= 1250) { rele2 = 0; }
@@ -175,7 +175,7 @@ if (!(refresh_wait || compar_wait))
 	if (!rele2_is_on)
 	{
 		if (refresh_timer == 0) { rele2 = 1; compar_timer = 7500; timer = 0; }
-		if (!(refresh_timer == 0)) { compar_timer = 20000; timer = 3750; }
+		if (!(refresh_timer == 0)) { compar_timer = 20000; timer = 30000; }
 		refresh_timer = 20000;
 	}
 }
