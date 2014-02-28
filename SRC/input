@@ -48,10 +48,7 @@ timer = 30000;
 compar_timer = 20000;
 refresh_timer = 20000;
 oldVol = 10;
-init x = t3 + voltage + checkSum == 243;
-x = x ? 4 : 2;
-goto x;
-delete x;
+goto 4;
 
 label 1;
 init x; delete x;
@@ -81,11 +78,11 @@ led0 = 0; led1 = 0; led2 = 0; led3 = 0;
 video = 0; voltage = 0;
 compar_timer = 20000;
 refresh_timer = 20000;
+timer = 30000;
 define y as TMP24;
 y = 4;
 erase y;
 init x = standTimer == 0;
-timer = 30000;
 x = x ? 5 : 9;
 if (standTimer == 0) { standTimer = 750; }
 if (x == 5) { s1 = 1; ind3 = 1; }
@@ -141,8 +138,8 @@ init rele2 = s2;
 init rele3 = s3;
 init rele4 = s4;
 
-init cond = !(inside == desired);
 init out = (outside >= 5);
+init cond = !(inside == desired) && out;
 rele2 = cond ? 1 : 0;
 delete cond;
 
@@ -190,13 +187,12 @@ rele4 = cond4 ? 1 : 0;
 delete cond4;
 delete out;
 
-if (rele2)
-{
-	if (rele3) { ind4 = 0; ind5 = 1; }
-	if (!rele3) { ind4 = 1; ind5 = 0; }
-}
-if (!rele2) { ind4 = 0; ind5 = 0; }
+init temp1 = rele2 && rele3;
+ind5 = temp1 ? 1 : 0;
+temp1 = rele2 && (!rele3);
+ind4 = temp1 ? 1 : 0;
 ind1 = rele4 ? 1 : 0;
+delete temp1;
 
 s2 = rele2; s3 = rele3; s4 = rele4;
 delete rele2; delete rele3; delete rele4;
